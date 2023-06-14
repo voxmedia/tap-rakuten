@@ -71,7 +71,7 @@ class RateLimitException(Exception):
     pass
 
 
-class Rakuten():
+class Rakuten:
 
     base_url = "https://ran-reporting.rakutenmarketing.com/{region}/reports/{report}/filters"
 
@@ -88,9 +88,10 @@ class Rakuten():
         'transaction_created'
     ]
 
-    def __init__(self, token, region='en', date_type='transaction'):
+    def __init__(self, token, field_types, region='en', date_type='transaction'):
         self.token = token
         self.region = region
+        self.field_types = field_types
 
         if date_type in ('transaction', 'process'):
             self.default_params['date_type'] = date_type
@@ -219,7 +220,7 @@ class Rakuten():
         data = {}
         for name in columns:
             name = name.strip()
-            field = FIELD_TYPE_REFERENCE.get(name)
+            field = self.field_types.get(name)
             data[name] = field
         return data
 
