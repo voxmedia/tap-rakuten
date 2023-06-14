@@ -12,10 +12,6 @@ from singer.utils import DATETIME_FMT_SAFE
 logger = singer.get_logger().getChild('tap-rakuten')
 
 
-with open(get_abs_path('field_types.json', __file__)) as f:
-    FIELD_TYPE_REFERENCE = json.load(f)
-
-
 def parse_date(string):
     return datetime.strptime(string, "%m/%d/%y")
 
