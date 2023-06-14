@@ -18,5 +18,5 @@ setup(
     tap-rakuten=tap_rakuten:main
     """,
     packages=["tap_rakuten"],
-    data_files=[("tap_rakuten", ["field_types.json"])],
+    data_files=[("tap_rakuten", ["tap_rakuten/field_types.json"])],
 )
