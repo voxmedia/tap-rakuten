@@ -12,10 +12,6 @@ from singer.utils import DATETIME_FMT_SAFE
 logger = singer.get_logger().getChild('tap-rakuten')
 
 
-# with open(get_abs_path('field_types.json', __file__)) as f:
-#     FIELD_TYPE_REFERENCE = json.load(f)
-
-
 def parse_date(string):
     return datetime.strptime(string, "%m/%d/%y")
 
@@ -91,7 +87,7 @@ class Rakuten:
     def __init__(self, token, field_types_fpath, region='en', date_type='transaction'):
         self.token = token
         self.region = region
-        with field_types_fpath as f:
+        with open(field_types_fpath) as f:
             self.field_types = json.load(f)
 
         if date_type in ('transaction', 'process'):
