@@ -115,7 +115,7 @@ def main():
         token=args.config['token'],
         region=args.config['region'],
         date_type=args.config['date_type'],
-        field_types=args.config['field_types_fpath'],
+        field_types_fpath=args.config['field_types_fpath'],
     )
 
     # If discover flag was passed, run discovery mode and dump output to stdout
