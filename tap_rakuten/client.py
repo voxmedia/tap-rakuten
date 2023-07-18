@@ -12,10 +12,6 @@ from singer.utils import DATETIME_FMT_SAFE
 logger = singer.get_logger().getChild('tap-rakuten')
 
 
-with open(get_abs_path('field_types.json', __file__)) as f:
-    FIELD_TYPE_REFERENCE = json.load(f)
-
-
 def parse_date(string):
     return datetime.strptime(string, "%m/%d/%y")
 
@@ -71,7 +67,7 @@ class RateLimitException(Exception):
     pass
 
 
-class Rakuten():
+class Rakuten:
 
     base_url = "https://ran-reporting.rakutenmarketing.com/{region}/reports/{report}/filters"
 
@@ -88,9 +84,11 @@ class Rakuten():
         'transaction_created'
     ]
 
-    def __init__(self, token, region='en', date_type='transaction'):
+    def __init__(self, token, field_types_fpath, region='en', date_type='transaction'):
         self.token = token
         self.region = region
+        with open(field_types_fpath) as f:
+            self.field_types = json.load(f)
 
         if date_type in ('transaction', 'process'):
             self.default_params['date_type'] = date_type
@@ -219,7 +217,7 @@ class Rakuten():
         data = {}
         for name in columns:
             name = name.strip()
-            field = FIELD_TYPE_REFERENCE.get(name)
+            field = self.field_types.get(name)
             data[name] = field
         return data
 

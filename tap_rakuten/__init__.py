@@ -9,8 +9,12 @@ from tap_rakuten.streams import get_stream
 from tap_rakuten.sync import sync_stream
 
 REQUIRED_CONFIG_KEYS = [
-    "token", "region", "report_slug",
-    "start_date", "date_type"
+    "token",
+    "region",
+    "report_slug",
+    "start_date",
+    "date_type",
+    "field_types_fpath",
 ]
 
 logger = singer.get_logger().getChild('tap-rakuten')
@@ -18,7 +22,7 @@ logger = singer.get_logger().getChild('tap-rakuten')
 
 def discover(client, config):
     """
-    Discover availalbe streams from provided configuration.
+    Discover available streams from provided configuration.
     Schema is generated dynamically based on returned column names.
     """
 
@@ -110,7 +114,8 @@ def main():
     client = Rakuten(
         token=args.config['token'],
         region=args.config['region'],
-        date_type=args.config['date_type']
+        date_type=args.config['date_type'],
+        field_types_fpath=args.config['field_types_fpath'],
     )
 
     # If discover flag was passed, run discovery mode and dump output to stdout

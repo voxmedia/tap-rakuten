@@ -3,5 +3,6 @@
   "token": "",
   "date_type": "transaction",
   "start_date": "2019-01-01T00:00:00Z",
-  "report_slug": "report-slug"
+  "report_slug": "report-slug",
+  "field_types_fpath": "field_types.json"
 }

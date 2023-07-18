@@ -1,4 +1,12 @@
 {
+   "Advertiser Name": {
+      "slug":"advertiser_name",
+      "type":"string"
+   },
+   "MID": {
+      "slug":"mid",
+      "type":"integer"
+   },
    "# of Cancelled Items":{
       "slug":"num_of_cancelled_items",
       "type":"integer"
