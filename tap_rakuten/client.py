@@ -364,9 +364,9 @@ class Rakuten:
         today = datetime.now()
 
         with self.get(report_slug, start_date=today) as r:
-            for line in r.iter_lines(decode_unicode=True, chunk_size=10):
-                columns = line.split(",")
-                break
+            iterator = r.iter_lines(decode_unicode=True, chunk_size=10)
+            first_line = next(iterator)
+            columns = first_line.split(",")
 
         return self.infer_schema(columns)
 
