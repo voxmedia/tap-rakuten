@@ -347,8 +347,8 @@ class Rakuten:
         """
         Get the schema of a report from a report_slug.
 
-        This method requests a report from a future date which will return a
-        CSV with headers but no rows. This means faster download time for
+        This method requests a report from today which will return a
+        CSV with headers and minimal rows. This means faster download time for
         initial schema definition.
 
         Args:
@@ -360,12 +360,13 @@ class Rakuten:
 
         logger.info("{} : determining schema.".format(report_slug))
 
-        future_date = datetime.now() + timedelta(days=2)
+        # 2023-09-26: API doesn't seem to accept future dates anymore
+        today = datetime.now()
 
-        with self.get(report_slug, start_date=future_date) as r:
-            for line in r.iter_lines(decode_unicode=True, chunk_size=10):
-                columns = line.split(",")
-                break
+        with self.get(report_slug, start_date=today) as r:
+            iterator = r.iter_lines(decode_unicode=True, chunk_size=10)
+            first_line = next(iterator)
+            columns = first_line.split(",")
 
         return self.infer_schema(columns)
 
