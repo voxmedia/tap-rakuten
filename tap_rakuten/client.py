@@ -4,6 +4,7 @@ import requests
 import json
 import csv
 import pytz
+import backoff
 
 from tap_rakuten.utilities import get_abs_path
 from datetime import datetime, timedelta
@@ -152,6 +153,7 @@ class Rakuten:
             **params
         }
 
+    @backoff.on_exception(backoff.expo, requests.exceptions.ChunkedEncodingError, max_tries=5)
     def get(self, report_slug, **kwargs):
         """
         Request CSV report from Rakuten.
