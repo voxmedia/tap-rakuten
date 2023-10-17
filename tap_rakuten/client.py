@@ -373,6 +373,7 @@ class Rakuten:
 
         return self.infer_schema(columns)
 
+    @backoff.on_exception(backoff.expo, (requests.exceptions.ChunkedEncodingError, ConnectionError, ConnectionResetError, urllib3.exceptions.ProtocolError), max_tries=5)
     def report(self, report_slug, start_date, **kwargs):
         """
         Generate a report for a particular report_slug and start_date.
