@@ -398,11 +398,16 @@ class Rakuten:
         ))
 
         with self.get(report_slug, start_date=start_date, **kwargs) as r:
-            reader = csv.DictReader(
-                r.iter_lines(decode_unicode=True),
-                delimiter=',',
-                quotechar='"'
-            )
+            try:
+                reader = csv.DictReader(
+                    r.iter_lines(decode_unicode=True),
+                    delimiter=',',
+                    quotechar='"'
+                )
+            except requests.exceptions.ChunkedEncodingError as e:
+                logger.error(
+                    f"Skipping {report_slug} for {start_date} due to error: {e}"
+                )
             logger.info('{} : processing CSV data.'.format(
                 report_slug
             ))
