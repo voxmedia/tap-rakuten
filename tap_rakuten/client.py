@@ -4,16 +4,14 @@ import requests
 import json
 import csv
 import pytz
+import backoff
+import urllib3.exceptions
 
 from tap_rakuten.utilities import get_abs_path
 from datetime import datetime, timedelta
 from singer.utils import DATETIME_FMT_SAFE
 
 logger = singer.get_logger().getChild('tap-rakuten')
-
-
-with open(get_abs_path('field_types.json', __file__)) as f:
-    FIELD_TYPE_REFERENCE = json.load(f)
 
 
 def parse_date(string):
@@ -71,7 +69,7 @@ class RateLimitException(Exception):
     pass
 
 
-class Rakuten():
+class Rakuten:
 
     base_url = "https://ran-reporting.rakutenmarketing.com/{region}/reports/{report}/filters"
 
@@ -88,9 +86,11 @@ class Rakuten():
         'transaction_created'
     ]
 
-    def __init__(self, token, region='en', date_type='transaction'):
+    def __init__(self, token, field_types_fpath, region='en', date_type='transaction'):
         self.token = token
         self.region = region
+        with open(field_types_fpath) as f:
+            self.field_types = json.load(f)
 
         if date_type in ('transaction', 'process'):
             self.default_params['date_type'] = date_type
@@ -154,6 +154,7 @@ class Rakuten():
             **params
         }
 
+    @backoff.on_exception(backoff.expo, (requests.exceptions.ChunkedEncodingError, ConnectionError, ConnectionResetError, urllib3.exceptions.ProtocolError), max_tries=5)
     def get(self, report_slug, **kwargs):
         """
         Request CSV report from Rakuten.
@@ -219,7 +220,7 @@ class Rakuten():
         data = {}
         for name in columns:
             name = name.strip()
-            field = FIELD_TYPE_REFERENCE.get(name)
+            field = self.field_types.get(name)
             data[name] = field
         return data
 
@@ -349,8 +350,8 @@ class Rakuten():
         """
         Get the schema of a report from a report_slug.
 
-        This method requests a report from a future date which will return a
-        CSV with headers but no rows. This means faster download time for
+        This method requests a report from today which will return a
+        CSV with headers and minimal rows. This means faster download time for
         initial schema definition.
 
         Args:
@@ -362,15 +363,17 @@ class Rakuten():
 
         logger.info("{} : determining schema.".format(report_slug))
 
-        future_date = datetime.now() + timedelta(days=2)
+        # 2023-09-26: API doesn't seem to accept future dates anymore
+        today = datetime.now()
 
-        with self.get(report_slug, start_date=future_date) as r:
-            for line in r.iter_lines(decode_unicode=True, chunk_size=10):
-                columns = line.split(",")
-                break
+        with self.get(report_slug, start_date=today) as r:
+            iterator = r.iter_lines(decode_unicode=True, chunk_size=10)
+            first_line = next(iterator)
+            columns = first_line.split(",")
 
         return self.infer_schema(columns)
 
+    @backoff.on_exception(backoff.expo, (requests.exceptions.ChunkedEncodingError, ConnectionError, ConnectionResetError, urllib3.exceptions.ProtocolError), max_tries=5)
     def report(self, report_slug, start_date, **kwargs):
         """
         Generate a report for a particular report_slug and start_date.
